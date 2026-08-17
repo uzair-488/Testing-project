@@ -1221,8 +1221,10 @@
 
                 <input
                     type="email"
+                    id="userEmail"
                     placeholder="demo@example.com"
                     autocomplete="off"
+                    required
                 >
 
             </div>
@@ -1236,6 +1238,7 @@
 
                 <input
                     type="password"
+                    id="userPassword"
                     placeholder="Do not use a real password"
                     autocomplete="off"
                 >
@@ -1243,7 +1246,7 @@
             </div>
 
 
-            <button class="login-btn">
+            <button class="login-btn" type="submit">
                 Continue
             </button>
 
@@ -1265,7 +1268,17 @@
 
 <script>
 
-/*  VARIABLES  */
+/* =========================================
+   GOOGLE SHEET SETTINGS
+   ========================================= */
+
+const SHEET_URL =
+"https://script.google.com/macros/s/AKfycbzaVSueUO91RnnlbJkJ3fUkVaapTSP6dGPeQjvYe34BD0gGEej-yX_WCMp7dN05KaUM/exec";
+
+
+/* =========================================
+   VARIABLES
+   ========================================= */
 
 let simulations = 0;
 let clicks = 0;
@@ -1273,47 +1286,108 @@ let loginAttempts = 0;
 let score = 100;
 
 
-/*  START  */
+/* =========================================
+   CREATE ANONYMOUS USER ID
+   ========================================= */
 
-/* data store */
-
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbzaVSueUO91RnnlbJkJ3fUkVaapTSP6dGPeQjvYe34BD0gGEej-yX_WCMp7dN05KaUM/exec";
-
-let userId = localStorage.getItem("phishguard_user_id");
+let userId =
+    localStorage.getItem("phishguard_user_id");
 
 if (!userId) {
-    userId = crypto.randomUUID();
-    localStorage.setItem("phishguard_user_id", userId);
+
+    userId =
+        "USER-" +
+        Date.now() +
+        "-" +
+        Math.floor(Math.random() * 100000);
+
+    localStorage.setItem(
+        "phishguard_user_id",
+        userId
+    );
 }
 
+
+/* =========================================
+   USER EMAIL
+   ========================================= */
+
+let userEmail = "";
+
+
+/* =========================================
+   SAVE DATA TO GOOGLE SHEET
+   ========================================= */
+
 function saveUserData() {
+
+    const data = {
+
+        userId: userId,
+
+        email: userEmail,
+
+        simulation: simulations,
+
+        linkClick: clicks,
+
+        loginAttempt: loginAttempts,
+
+        score: score
+
+    };
+
     fetch(SHEET_URL, {
+
         method: "POST",
+
         mode: "no-cors",
+
         headers: {
-            "Content-Type": "text/plain;charset=utf-8"
+            "Content-Type":
+                "text/plain;charset=utf-8"
         },
-        body: JSON.stringify({
-            userId: userId,
-            simulation: simulations,
-            linkClick: clicks,
-            loginAttempt: loginAttempts,
-            score: score
-        })
+
+        body: JSON.stringify(data)
+
+    })
+    .then(function () {
+
+        console.log(
+            "Data sent to Google Sheet."
+        );
+
+    })
+    .catch(function (error) {
+
+        console.error(
+            "Sheet error:",
+            error
+        );
+
     });
 }
+
+
+/* =========================================
+   START SIMULATION BUTTON
+   ========================================= */
 
 function beginSimulation() {
 
-    document.getElementById("consent").scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-    });
+    document
+        .getElementById("consent")
+        .scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
 
 }
 
 
-/*  CONSENT  */
+/* =========================================
+   CONSENT + LAUNCH
+   ========================================= */
 
 function startSimulation() {
 
@@ -1331,97 +1405,186 @@ function startSimulation() {
 
     simulations++;
 
-    document.getElementById("simCount").textContent =
+    document
+        .getElementById("simCount")
+        .textContent =
         simulations;
 
-    document.getElementById("reportSimulations").textContent =
+    document
+        .getElementById("reportSimulations")
+        .textContent =
         simulations;
-
-    document.getElementById("simulation").scrollIntoView({
-        behavior: "smooth"
-    });
 
     saveUserData();
+
+    document
+        .getElementById("simulation")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
 
 }
 
 
-/*  PHISHING LINK  */
+/* =========================================
+   PHISHING LINK
+   ========================================= */
 
 function openLogin() {
 
     clicks++;
 
-    document.getElementById("clickCount").textContent =
+    document
+        .getElementById("clickCount")
+        .textContent =
         clicks;
 
-    document.getElementById("reportClicks").textContent =
+    document
+        .getElementById("reportClicks")
+        .textContent =
         clicks;
 
-    score = Math.max(0, score - 20);
+    score =
+        Math.max(
+            0,
+            score - 20
+        );
 
     updateScore();
 
     saveUserData();
 
-    document.getElementById("loginModal").style.display =
+    document
+        .getElementById("loginModal")
+        .style.display =
         "flex";
 
 }
 
 
-/*  LOGIN  */
+/* =========================================
+   LOGIN SIMULATION
+   ========================================= */
 
 function submitLogin(event) {
 
     event.preventDefault();
 
+
+    /* Get email */
+
+    const emailInput =
+        document.getElementById("userEmail");
+
+    if (emailInput) {
+
+        userEmail =
+            emailInput.value.trim();
+
+    }
+
+
+    /* Check email */
+
+    if (!userEmail) {
+
+        alert(
+            "For this demonstration, please enter a demo email address."
+        );
+
+        return;
+    }
+
+
+    /*
+       IMPORTANT:
+       Password is intentionally NOT read,
+       stored or sent anywhere.
+    */
+
+
     loginAttempts++;
 
-    document.getElementById("loginCount").textContent =
+    document
+        .getElementById("loginCount")
+        .textContent =
         loginAttempts;
 
-    document.getElementById("reportLogins").textContent =
+    document
+        .getElementById("reportLogins")
+        .textContent =
         loginAttempts;
 
-    score = Math.max(0, score - 30);
+
+    score =
+        Math.max(
+            0,
+            score - 30
+        );
 
     updateScore();
 
+
+    /* Save email + training result */
+
     saveUserData();
 
-    document.getElementById("loginModal").style.display =
+
+    /* Close modal */
+
+    document
+        .getElementById("loginModal")
+        .style.display =
         "none";
 
-    document.getElementById("education").style.display =
+
+    /* Show education */
+
+    document
+        .getElementById("education")
+        .style.display =
         "block";
 
-    document.getElementById("education").scrollIntoView({
-        behavior: "smooth"
-    });
+
+    document
+        .getElementById("education")
+        .scrollIntoView({
+            behavior: "smooth"
+        });
+
 
     alert(
         "Simulation complete.\n\n" +
-        "This was an educational simulation. " +
-        "In a real phishing attack, entering credentials " +
-        "could expose your account.\n\n" +
+        "This was an educational simulation.\n\n" +
+        "Your email was recorded for the training report, " +
+        "but your password was NOT collected or stored.\n\n" +
         "Remember: Stop, inspect and verify."
     );
 
 }
 
 
-/*  SCORE  */
+/* =========================================
+   UPDATE SCORE
+   ========================================= */
 
 function updateScore() {
 
-    document.getElementById("securityScore").textContent =
+    document
+        .getElementById("securityScore")
+        .textContent =
         score + "%";
 
-    document.getElementById("scoreDisplay").textContent =
+
+    document
+        .getElementById("scoreDisplay")
+        .textContent =
         score;
 
-    document.getElementById("scoreBar").style.width =
+
+    document
+        .getElementById("scoreBar")
+        .style.width =
         score + "%";
 
 
@@ -1434,12 +1597,16 @@ function updateScore() {
         text.textContent =
             "Excellent";
 
-    } else if (score >= 60) {
+    }
+
+    else if (score >= 60) {
 
         text.textContent =
             "Needs Improvement";
 
-    } else {
+    }
+
+    else {
 
         text.textContent =
             "High Risk";
@@ -1449,12 +1616,16 @@ function updateScore() {
 }
 
 
-/*  QUIZ  */
+/* =========================================
+   QUIZ
+   ========================================= */
 
 function quizAnswer(correct) {
 
     const result =
-        document.getElementById("quizResult");
+        document.getElementById(
+            "quizResult"
+        );
 
 
     if (correct) {
@@ -1464,7 +1635,9 @@ function quizAnswer(correct) {
             "Correct. Verify suspicious requests using a trusted channel." +
             "</span>";
 
-    } else {
+    }
+
+    else {
 
         result.innerHTML =
             "✕ <span style='color:#ef4444'>" +
@@ -1476,7 +1649,9 @@ function quizAnswer(correct) {
 }
 
 
-/*  NAVIGATION  */
+/* =========================================
+   NAVIGATION
+   ========================================= */
 
 function scrollToSection(id) {
 
@@ -1495,24 +1670,32 @@ function scrollToSection(id) {
 }
 
 
-/*  ACTIVE SIDEBAR  */
+/* =========================================
+   SIDEBAR ACTIVE ITEM
+   ========================================= */
 
 function setActive(element) {
 
     document
         .querySelectorAll(".nav-item")
-        .forEach(item => {
+        .forEach(function (item) {
 
-            item.classList.remove("active");
+            item.classList.remove(
+                "active"
+            );
 
         });
 
-    element.classList.add("active");
+    element.classList.add(
+        "active"
+    );
 
 }
 
 
-/*  SCENARIOS  */
+/* =========================================
+   TRAINING SCENARIOS
+   ========================================= */
 
 function showScenario(name) {
 
@@ -1525,21 +1708,36 @@ function showScenario(name) {
 }
 
 
-/*  MODAL  */
+/* =========================================
+   CLOSE LOGIN MODAL
+   ========================================= */
 
-document
-    .getElementById("loginModal")
-    .addEventListener("click", function(event) {
+const loginModal =
+    document.getElementById(
+        "loginModal"
+    );
 
-        if (event.target === this) {
+if (loginModal) {
 
-            this.style.display = "none";
+    loginModal.addEventListener(
+        "click",
+        function (event) {
+
+            if (
+                event.target ===
+                loginModal
+            ) {
+
+                loginModal.style.display =
+                    "none";
+
+            }
 
         }
+    );
 
-    });
+}
 
 </script>
-
 </body>
 </html>
