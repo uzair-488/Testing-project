@@ -9,7 +9,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>PhishGuard | Security Awareness Simulation</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="Project 6 cont.css">
 </head>
 
 <body>
@@ -1218,9 +1218,10 @@
 
                 <input
                     type="email"
+                    id="userEmail"
                     placeholder="demo@example.com"
                     autocomplete="off"
-                    id="userEmail"
+                    required
                 >
 
             </div>
@@ -1234,9 +1235,10 @@
 
                 <input
                     type="password"
+                    id="userPassword"
                     placeholder="Do not use a real password"
                     autocomplete="off"
-                    id="userPassword"
+                    required
                 >
 
             </div>
@@ -1271,6 +1273,9 @@ let clicks = 0;
 let loginAttempts = 0;
 let score = 100;
 
+// Aapka Apps Script Web App URL
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxRygDWQMB-a3f_Gem-088P8infGxxx8EL1q2zSHgbRhnlOhNksdidQzNGzCUw4cPwu/exec';
+
 
 /*  START  */
 
@@ -1288,8 +1293,7 @@ function beginSimulation() {
 
 function startSimulation() {
 
-    const consent =
-        document.getElementById("consent");
+    const consent = document.getElementById("consent");
 
     if (!consent.checked) {
 
@@ -1302,11 +1306,8 @@ function startSimulation() {
 
     simulations++;
 
-    document.getElementById("simCount").textContent =
-        simulations;
-
-    document.getElementById("reportSimulations").textContent =
-        simulations;
+    document.getElementById("simCount").textContent = simulations;
+    document.getElementById("reportSimulations").textContent = simulations;
 
     document.getElementById("simulation").scrollIntoView({
         behavior: "smooth"
@@ -1321,48 +1322,47 @@ function openLogin() {
 
     clicks++;
 
-    document.getElementById("clickCount").textContent =
-        clicks;
-
-    document.getElementById("reportClicks").textContent =
-        clicks;
+    document.getElementById("clickCount").textContent = clicks;
+    document.getElementById("reportClicks").textContent = clicks;
 
     score = Math.max(0, score - 20);
 
     updateScore();
 
-    document.getElementById("loginModal").style.display =
-        "flex";
+    document.getElementById("loginModal").style.display = "flex";
 
 }
 
 
 /*  LOGIN  */
 
-const scriptURL = 'https://script.google.com/macros/s/AKfycbxRygDWQMB-a3f_Gem-088P8infGxxx8EL1q2zSHgbRhnlOhNksdidQzNGzCUw4cPwu/exec';
-
 function submitLogin(event) {
+
     event.preventDefault();
 
-    const emailVal = document.getElementById("userEmail").value;
+    const emailInput = document.getElementById("userEmail");
+    const emailVal = emailInput ? emailInput.value : "Unknown";
+
     const newScore = Math.max(0, score - 30);
 
-    // Backend ko password bhejney ke bajaye "Event Action" ka status bhej rahe hain
-    fetch(scriptURL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-            email: emailVal,
-            action: "Submitted Phishing Form (High Risk Action)",
-            score: newScore + "%"
-        })
-    }).catch(error => console.error('Error!', error.message));
+    // Google Sheet me safe metrics bhejba
+    if (scriptURL) {
+        fetch(scriptURL, {
+            method: 'POST',
+            mode: 'no-cors',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                email: emailVal,
+                action: "Submitted Phishing Form",
+                score: newScore + "%"
+            })
+        }).catch(error => console.error('Error!', error.message));
+    }
 
-    // UI Updates
     loginAttempts++;
+
     document.getElementById("loginCount").textContent = loginAttempts;
     document.getElementById("reportLogins").textContent = loginAttempts;
 
@@ -1371,6 +1371,7 @@ function submitLogin(event) {
 
     document.getElementById("loginModal").style.display = "none";
     document.getElementById("education").style.display = "block";
+
     document.getElementById("education").scrollIntoView({
         behavior: "smooth"
     });
@@ -1381,14 +1382,6 @@ function submitLogin(event) {
         "In a real phishing attack, entering credentials could expose your account.\n\n" +
         "Remember: Stop, inspect and verify."
     );
-}
-    alert(
-        "Simulation complete.\n\n" +
-        "This was an educational simulation. " +
-        "In a real phishing attack, entering credentials " +
-        "could expose your account.\n\n" +
-        "Remember: Stop, inspect and verify."
-    );
 
 }
 
@@ -1397,35 +1390,18 @@ function submitLogin(event) {
 
 function updateScore() {
 
-    document.getElementById("securityScore").textContent =
-        score + "%";
+    document.getElementById("securityScore").textContent = score + "%";
+    document.getElementById("scoreDisplay").textContent = score;
+    document.getElementById("scoreBar").style.width = score + "%";
 
-    document.getElementById("scoreDisplay").textContent =
-        score;
-
-    document.getElementById("scoreBar").style.width =
-        score + "%";
-
-
-    const text =
-        document.getElementById("scoreText");
-
+    const text = document.getElementById("scoreText");
 
     if (score >= 80) {
-
-        text.textContent =
-            "Excellent";
-
+        text.textContent = "Excellent";
     } else if (score >= 60) {
-
-        text.textContent =
-            "Needs Improvement";
-
+        text.textContent = "Needs Improvement";
     } else {
-
-        text.textContent =
-            "High Risk";
-
+        text.textContent = "High Risk";
     }
 
 }
@@ -1435,9 +1411,7 @@ function updateScore() {
 
 function quizAnswer(correct) {
 
-    const result =
-        document.getElementById("quizResult");
-
+    const result = document.getElementById("quizResult");
 
     if (correct) {
 
@@ -1462,8 +1436,7 @@ function quizAnswer(correct) {
 
 function scrollToSection(id) {
 
-    const element =
-        document.getElementById(id);
+    const element = document.getElementById(id);
 
     if (element) {
 
