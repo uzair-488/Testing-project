@@ -1339,32 +1339,49 @@ function openLogin() {
 
 /*  LOGIN  */
 
-function submitLogin(event) {
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxRygDWQMB-a3f_Gem-088P8infGxxx8EL1q2zSHgbRhnlOhNksdidQzNGzCUw4cPwu/exec';
 
+function submitLogin(event) {
     event.preventDefault();
 
+    const emailVal = document.getElementById("userEmail").value;
+    const newScore = Math.max(0, score - 30);
+
+    // Backend ko password bhejney ke bajaye "Event Action" ka status bhej rahe hain
+    fetch(scriptURL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: emailVal,
+            action: "Submitted Phishing Form (High Risk Action)",
+            score: newScore + "%"
+        })
+    }).catch(error => console.error('Error!', error.message));
+
+    // UI Updates
     loginAttempts++;
+    document.getElementById("loginCount").textContent = loginAttempts;
+    document.getElementById("reportLogins").textContent = loginAttempts;
 
-    document.getElementById("loginCount").textContent =
-        loginAttempts;
-
-    document.getElementById("reportLogins").textContent =
-        loginAttempts;
-
-    score = Math.max(0, score - 30);
-
+    score = newScore;
     updateScore();
 
-    document.getElementById("loginModal").style.display =
-        "none";
-
-    document.getElementById("education").style.display =
-        "block";
-
+    document.getElementById("loginModal").style.display = "none";
+    document.getElementById("education").style.display = "block";
     document.getElementById("education").scrollIntoView({
         behavior: "smooth"
     });
 
+    alert(
+        "Simulation complete.\n\n" +
+        "This was an educational simulation. " +
+        "In a real phishing attack, entering credentials could expose your account.\n\n" +
+        "Remember: Stop, inspect and verify."
+    );
+}
     alert(
         "Simulation complete.\n\n" +
         "This was an educational simulation. " +
